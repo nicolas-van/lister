@@ -107,7 +107,8 @@ if __name__ == "__main__":
 
         now = datetime.datetime.now()
         diff = now - begin
-        seconds = diff.total_seconds()
+        td = diff
+        seconds = (td.microseconds + (td.seconds + td.days * 24. * 3600.) * 10.**6.) / 10.**6.
 
         per_item = seconds / processed
 
