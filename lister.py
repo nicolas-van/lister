@@ -25,6 +25,7 @@ import sqlalchemy as sa
 from pyphilo import *
 import pyphilo
 import os.path
+import datetime
 from pprint import pprint
 
 DEBUG = False
@@ -33,7 +34,7 @@ engine.init_global_engine('sqlite:///domains.db', echo=DEBUG)
 
 class Domain(Base):
     domain = sa.Column(sa.String(50), nullable=False, unique=True, index=True)
-    free = sa.Column(sa.Boolean(), nullable=False)
+    free = sa.Column(sa.Boolean(), nullable=False, index=True)
 
 pyphilo.init_db()
 
@@ -75,6 +76,8 @@ if __name__ == "__main__":
         chars = chars_to_array(last_domain)
         chars = add_one(chars)
 
+    processed = 0
+    begin = datetime.datetime.now()
     while True:
         domain = array_to_chars(chars)
         result = free_domain(domain)
@@ -87,8 +90,38 @@ if __name__ == "__main__":
 
         print "%s : %s" % (domain, "free" if result else "taken")
 
+        processed += 1
+
         if chars == final:
             break
 
+        i = len(chars) - 1
+        tot = 0
+        mult = 1
+        while i >= 0:
+            tot += (chars_number - chars[i]) * mult
+            mult *= chars_number
+            i -= 1
+
+        remaining = tot
+
+        now = datetime.datetime.now()
+        diff = now - begin
+        seconds = diff.total_seconds()
+
+        per_item = seconds / processed
+
+        remaining_seconds = remaining * per_item
+        remaining_time = datetime.timedelta(seconds=remaining_seconds)
+
+        print "remaining: ",
+        pprint(remaining_time)
+
+        if processed == 50:
+            processed = 0
+            begin = datetime.datetime.now()
+
         chars = add_one(chars)
+
+
 
